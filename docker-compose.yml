@@ -1,0 +1,53 @@
+services:
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka_broker
+    ports:
+      - "9093:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka_broker:9092
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2182:2181"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: yes
+
+  data-retrieval:
+    build:
+      context: ./data-retrieval
+    container_name: data_retrieval_service
+    ports:
+      - "3000:3000"
+    environment:
+      - API_URL=https://planb.revelup.com/resources/Order
+      - API_KEY=ab6eb690690d4e5fb6727351a08c4f86:5d7bd675e74e4befab64d37660013c7b03214572b7c44cfeb1777fc9c96ff412
+      - KAFKA_BROKER=kafka_broker:9092
+      - KAFKA_TOPIC=data_pipeline_topic
+      - FETCH_INTERVAL_MS=60000
+    depends_on:
+      - kafka
+
+
+  data-insertion:
+    build:
+      context: ./data-insertion
+    container_name: data_insertion_service
+   
+    environment:
+      - KAFKA_BROKER=kafka_broker:9092
+      - KAFKA_TOPIC=data_pipeline_topic
+      - DB_USER=demo_user
+      - DB_PASSWORD=StrongPassword123!
+      - DB_HOST=trustanglepowerbi.database.windows.net
+      - DB_PORT=1433
+      - DB_NAME=Test db
+    depends_on:
+     - kafka
