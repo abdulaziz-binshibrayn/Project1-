@@ -18,7 +18,7 @@ This project demonstrates a simple data pipeline where data is consumed from a K
 ---
 
 ## 📁 Project Structure
-2 services ( reteival - insertion )
+2 services ( retrieval - insertion )
 
 ## ⚙️ Requirements
 
