@@ -13,8 +13,13 @@ export class DataInsertionService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    await this.kafkaService.listenToMessages(this.handleMessage.bind(this));
+  if (process.env.SERVICE_ROLE !== 'insertion') {
+    console.log('Kafka consumer disabled: this is not data-insertion service');
+    return;
   }
+
+  await this.kafkaService.listenToMessages(this.handleMessage.bind(this));
+}
 
   private async handleMessage(data: string): Promise<void> {
     try {

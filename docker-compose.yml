@@ -6,7 +6,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     ports:
-      - '27017:27017'
+      - '27018:27017'
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh mongo:27017/local --quiet
       interval: 10s
@@ -42,37 +42,40 @@ services:
       ALLOW_ANONYMOUS_LOGIN: ${ALLOW_ANONYMOUS_LOGIN}
     networks:
       - task
-
   data-retrieval:
-    container_name: data-retrieval
-    build:
-      context: .
-      dockerfile: src/data-retrieval/Dockerfile
-    ports:
-      - '3000:3000'
-    depends_on:
-      - kafka
-    networks:
-      - task
-    env_file:
-      - .env
+   container_name: data-retrieval
+   build:
+    context: .
+    dockerfile: src/data-retrieval/Dockerfile
+   ports:
+    - '3000:3000'
+   depends_on:
+    - kafka
+   networks:
+    - task
+   env_file:
+    - .env
+   environment:
+    SERVICE_ROLE: retrieval
 
   data-insertion:
-    container_name: data-insertion
-    build:
-      context: .
-      dockerfile: src/data-insertion/Dockerfile
-    ports:
-      - '4000:4000'
-    depends_on:
-      kafka:
-        condition: service_started
-      mongo:
-        condition: service_healthy
-    networks:
-      - task
-    env_file:
-      - .env
+   container_name: data-insertion
+   build:
+     context: .
+     dockerfile: src/data-insertion/Dockerfile
+   ports:
+     - '4000:4000'
+   depends_on:
+     kafka:
+       condition: service_started
+     mongo:
+       condition: service_healthy
+   networks:
+     - task
+   env_file:
+     - .env
+   environment:
+     SERVICE_ROLE: insertion
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.6.0
