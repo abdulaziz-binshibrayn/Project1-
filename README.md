@@ -1,99 +1,133 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Order Data Pipeline
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A containerized data pipeline built with **NestJS**, **Kafka**, **MongoDB**, and **Elasticsearch**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+The project extracts order data from an external API, sends it through Kafka, stores it in MongoDB, and indexes it in Elasticsearch for fast search.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Project Flow
 
-## Project setup
+```text
+External API / Revel API
+        ↓
+Data Retrieval Service
+        ↓
+Kafka Topic
+        ↓
+Data Insertion Service
+        ↓
+MongoDB + Elasticsearch
 
-```bash
-$ npm install
-```
+Features
+Fetches order data from an external API.
+Sends data to Kafka as messages.
+Consumes Kafka messages in a separate service.
+Inserts or updates orders in MongoDB.
+Indexes orders in Elasticsearch.
+Runs all services using Docker Compose.
+Uses .env for configuration and secrets.
+Tech Stack
+NestJS
+TypeScript
+Kafka
+KafkaJS
+MongoDB
+Mongoose
+Elasticsearch
+Docker
+Docker Compose
+Zookeeper
+Project Structure
+src
+├── data-retrieval
+│   ├── data-retrieval.controller.ts
+│   ├── data-retrieval.module.ts
+│   ├── data-retrieval.service.ts
+│   └── Dockerfile
+│
+├── data-insertion
+│   ├── db
+│   │   ├── schemas
+│   │   │   └── order.schema.ts
+│   │   └── db.service.ts
+│   ├── data-insertion.module.ts
+│   ├── data-insertion.service.ts
+│   └── Dockerfile
+│
+├── kafka
+│   ├── kafka.module.ts
+│   └── kafka.service.ts
+│
+├── shared
+│   ├── elasticsearch.module.ts
+│   ├── elasticsearch.service.ts
+│   └── error-message.util.ts
+│
+├── app.module.ts
+└── main.ts
+Environment Variables
 
-## Compile and run the project
+Create a .env file in the root directory:
 
-```bash
-# development
-$ npm run start
+MONGO_USERNAME=root
+MONGO_PASSWORD=example
+MONGO_DATABASE=orders
+MONGO_URI=mongodb://root:example@mongo:27017/orders?authSource=admin
 
-# watch mode
-$ npm run start:dev
+KAFKA_BROKER=kafka:9092
+KAFKA_TOPIC=data_pipeline_topic
 
-# production mode
-$ npm run start:prod
-```
+API_URL=https://example.com/resources/Order/
+API_KEY=your_api_key_here
 
-## Run tests
+ELASTICSEARCH_URL=http://elasticsearch:9200
 
-```bash
-# unit tests
-$ npm run test
+Do not commit .env to GitHub. Use .env.example instead.
 
-# e2e tests
-$ npm run test:e2e
+Run the Project
+docker compose up --build -d
 
-# test coverage
-$ npm run test:cov
-```
+Check running containers:
 
-## Deployment
+docker compose ps
+Trigger the Pipeline
+curl -X POST http://localhost:3000/
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Expected response:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+success
+Verify Logs
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+Data retrieval service:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+docker logs data-retrieval --tail=100
 
-## Resources
+Data insertion service:
 
-Check out a few resources that may come in handy when working with NestJS:
+docker logs data-insertion --tail=100
+Verify MongoDB
+docker exec -it mongo mongosh -u root -p example --authenticationDatabase admin
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Then run:
 
-## Support
+use orders
+db.orders.countDocuments()
+db.orders.find().limit(5).pretty()
+Verify Elasticsearch
+curl http://localhost:9200/_cat/indices?v
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Search orders:
 
-## Stay in touch
+curl "http://localhost:9200/orders/_search?pretty&size=5"
+Pipeline Type
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+This project is an EL pipeline:
 
-## License
+Extract → Load
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+It extracts data from an external API and loads it into MongoDB and Elasticsearch, with light validation and formatting before storage.
+
+Author
+
+Developed by Abdulaziz Bin Shibrayn.
