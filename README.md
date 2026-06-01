@@ -18,27 +18,43 @@ Kafka Topic
 Data Insertion Service
         ↓
 MongoDB + Elasticsearch
+```
 
-Features
-Fetches order data from an external API.
-Sends data to Kafka as messages.
-Consumes Kafka messages in a separate service.
-Inserts or updates orders in MongoDB.
-Indexes orders in Elasticsearch.
-Runs all services using Docker Compose.
-Uses .env for configuration and secrets.
-Tech Stack
-NestJS
-TypeScript
-Kafka
-KafkaJS
-MongoDB
-Mongoose
-Elasticsearch
-Docker
-Docker Compose
-Zookeeper
-Project Structure
+---
+
+## Features
+
+- Fetches order data from an external API.
+- Sends data to Kafka as messages.
+- Consumes Kafka messages in a separate service.
+- Inserts or updates orders in MongoDB.
+- Indexes orders in Elasticsearch.
+- Runs all services using Docker Compose.
+- Uses `.env` for configuration and secrets.
+
+---
+
+## Tools & Technologies
+
+| Tool | Purpose |
+|---|---|
+| **NestJS** | Backend framework used to build the services |
+| **TypeScript** | Main programming language |
+| **Axios** | Used to fetch data from the external API |
+| **Kafka** | Message broker used to stream data between services |
+| **KafkaJS** | Node.js client for Kafka |
+| **MongoDB** | Database used to store order data |
+| **Mongoose** | ODM used to work with MongoDB in NestJS |
+| **Elasticsearch** | Used to index and search order data |
+| **Docker** | Used to containerize the services |
+| **Docker Compose** | Used to run all services together |
+| **Zookeeper** | Used by Kafka for coordination |
+
+---
+
+## Project Structure
+
+```text
 src
 ├── data-retrieval
 │   ├── data-retrieval.controller.ts
@@ -66,10 +82,15 @@ src
 │
 ├── app.module.ts
 └── main.ts
-Environment Variables
+```
 
-Create a .env file in the root directory:
+---
 
+## Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
 MONGO_USERNAME=root
 MONGO_PASSWORD=example
 MONGO_DATABASE=orders
@@ -82,52 +103,100 @@ API_URL=https://example.com/resources/Order/
 API_KEY=your_api_key_here
 
 ELASTICSEARCH_URL=http://elasticsearch:9200
+```
 
-Do not commit .env to GitHub. Use .env.example instead.
+> Do not commit `.env` to GitHub. Use `.env.example` instead.
 
-Run the Project
+---
+
+## Run the Project
+
+```bash
 docker compose up --build -d
+```
 
 Check running containers:
 
+```bash
 docker compose ps
-Trigger the Pipeline
+```
+
+---
+
+## Trigger the Pipeline
+
+```bash
 curl -X POST http://localhost:3000/
+```
 
 Expected response:
 
+```text
 success
-Verify Logs
+```
+
+---
+
+## Verify Logs
 
 Data retrieval service:
 
+```bash
 docker logs data-retrieval --tail=100
+```
 
 Data insertion service:
 
+```bash
 docker logs data-insertion --tail=100
-Verify MongoDB
+```
+
+---
+
+## Verify MongoDB
+
+```bash
 docker exec -it mongo mongosh -u root -p example --authenticationDatabase admin
+```
 
 Then run:
 
+```js
 use orders
 db.orders.countDocuments()
 db.orders.find().limit(5).pretty()
-Verify Elasticsearch
+```
+
+---
+
+## Verify Elasticsearch
+
+List indices:
+
+```bash
 curl http://localhost:9200/_cat/indices?v
+```
 
 Search orders:
 
+```bash
 curl "http://localhost:9200/orders/_search?pretty&size=5"
-Pipeline Type
+```
 
-This project is an EL pipeline:
+---
 
+## Pipeline Type
+
+This project is an **EL Pipeline**:
+
+```text
 Extract → Load
+```
 
-It extracts data from an external API and loads it into MongoDB and Elasticsearch, with light validation and formatting before storage.
+It extracts data from an external API and loads it into **MongoDB** and **Elasticsearch**, with light validation and formatting before storage.
 
-Author
+---
 
-Developed by Abdulaziz Bin Shibrayn.
+## Author
+
+Developed by **Abdulaziz Bin Shibrayn**.
