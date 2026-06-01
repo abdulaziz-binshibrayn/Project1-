@@ -1,26 +1,24 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { DbService } from './db/db.service';
-import { ElasticsearchService } from '../shared/elasticsearch.service';
 import { KafkaService } from 'src/kafka/kafka.service';
+import { ElasticsearchService } from '../shared/elasticsearch.service';
+import { DbService } from './db/db.service';
+import { getErrorMessage } from '../shared/error-message.util';
 
 @Injectable()
 export class DataInsertionService implements OnModuleInit {
   constructor(
-    private readonly KafkaService: KafkaService,
+    private readonly kafkaService: KafkaService,
     private readonly dbService: DbService,
     private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
   async onModuleInit(): Promise<void> {
-    await this.KafkaService.listenToMessages(this.handleMessage.bind(this));
+    await this.kafkaService.listenToMessages(this.handleMessage.bind(this));
   }
 
-  /**
-    @param data 
-   */
   private async handleMessage(data: string): Promise<void> {
     try {
-      console.log('Handler triggered:');
+      console.log('Handler triggered');
 
       const parsedData = JSON.parse(data);
 
@@ -30,7 +28,7 @@ export class DataInsertionService implements OnModuleInit {
       }
 
       for (const orderData of parsedData.objects) {
-        console.log('Inserting/updating order in MongoDB:');
+        console.log('Inserting/updating order in MongoDB');
 
         await this.dbService.upsertData(orderData);
 
@@ -38,16 +36,17 @@ export class DataInsertionService implements OnModuleInit {
         await this.elasticsearchService.indexDocument('orders', orderData);
       }
     } catch (error) {
-      console.error('Error handling Kafka message:', error.message);
+      console.error('Error handling Kafka message:', getErrorMessage(error));
     }
   }
 
-  async searchOrders(query: string): Promise<any> {
+  async searchOrders(query: string): Promise<unknown> {
     const searchQuery = {
       query: {
         match: { id: query },
       },
     };
+
     return await this.elasticsearchService.searchDocuments(
       'orders',
       searchQuery,

@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { KafkaService } from '../kafka/kafka.service';
 import axios from 'axios';
+import { KafkaService } from '../kafka/kafka.service';
+import { getErrorMessage } from '../shared/error-message.util';
 
 @Injectable()
 export class DataRetrievalService {
-  constructor(private readonly KafkaService: KafkaService) {}
+  constructor(private readonly kafkaService: KafkaService) {}
 
   async fetchData(): Promise<void> {
     try {
-      const response = await axios.get(process.env.API_URL, {
+      const response = await axios.get(process.env.API_URL || '', {
         params: {
           establishment: 1,
           created_date__gte: '2024-12-01',
@@ -20,10 +21,10 @@ export class DataRetrievalService {
         },
       });
 
-      console.log('Data fetched successfully:');
-      await this.KafkaService.sendToKafka(response.data);
+      console.log('Data fetched successfully');
+      await this.kafkaService.sendToKafka(response.data);
     } catch (error) {
-      console.error('Error fetching data:', error.message);
+      console.error('Error fetching data:', getErrorMessage(error));
     }
   }
 }
